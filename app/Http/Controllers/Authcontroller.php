@@ -6,7 +6,9 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
-
+// یوز کردن request های هر فرم
+use App\Http\Requests\RegisterRequest;
+use App\Http\Requests\LoginRequest;
 
 class Authcontroller extends Controller
 {
@@ -16,24 +18,20 @@ class Authcontroller extends Controller
     public function showregisterform(){
         return view('auth.register');
     }
-    public function register(Request $request){
-        $credentials = $request->validate([
-            'name' => 'required|string|max:255',
-            'email' => 'required|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+    public function register(RegisterRequest $request){
+        $validatedData = $request->validated();
         $user = User::create([
-            'name' => $credentials['name'],
-            'email' => $credentials['email'],
-            'password' => hash::make($credentials['password']),
+            'name' => $validatedData['name'],
+            'email' => $validatedData['email'],
+            'password' => Hash::make($validatedData['password']),
         ]);
 
         return redirect()->route('login')->with('ثبت نام موفق بود لطفا وارد شوید (:');
     }
 
-    public function login(Request $request){
+    public function login(LoginRequest $request){
 
-        $credentials = $request()->only(['email', 'password']);
+        $credentials = $request()->validated();
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
             return redirect()->route('dashboard');
